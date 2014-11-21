@@ -437,10 +437,8 @@ class Worksheet(object):
         entry = Element('entry', {'xmlns': ATOM_NS,
                                   'xmlns:gsx': SPREADSHEET_NSX})
 
-        from ipdb import set_trace as dbg
-        dbg()
         for header, value in zip(self.row_values(1), values):
-            SubElement(entry, 'gsx:{0}'.format(header)).text = unicode(value)
+            SubElement(entry, 'gsx:{0}'.format(header)).text = "{}".format(value)
 
         return entry
 
