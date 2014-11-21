@@ -516,16 +516,15 @@ class Worksheet(object):
         :param values: List of values for the new row.
         """
         self.add_rows(1)
-        new_row = self.row_count
         data_width = len(values)
         if self.col_count < data_width:
             self.resize(cols=data_width)
 
-        cell_list = []
-        for i, value in enumerate(values, start=1):
-            cell = self.cell(new_row, i)
+        fisrt_cell_addr = self.get_addr_int(self.row_count, 1)
+        last_cell_addr = self.get_addr_int(self.row_count, len(values))
+        cell_list = self.range(fisrt_cell_addr + ":" + last_cell_addr)
+        for cell, value in zip(cell_list, values):
             cell.value = value
-            cell_list.append(cell)
 
         self.update_cells(cell_list)
 
