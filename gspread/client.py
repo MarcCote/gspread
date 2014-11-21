@@ -46,11 +46,11 @@ class Client(object):
                                     Defaults to :class:`~gspread.httpsession.HTTPSession`.
 
     >>> c = gspread.Client(auth=('user@example.com', 'qwertypassword'))
-    
+
     or
-    
+
     >>> c = gspread.Client(auth=OAuthCredentialObject)
-    
+
 
     """
     def __init__(self, auth, http_session=None):
@@ -84,28 +84,28 @@ class Client(object):
             if not self.auth.access_token or \
                     (hasattr(self.auth, 'access_token_expired') and self.auth.access_token_expired):
                 import httplib2
-                
+
                 http = httplib2.Http()
                 self.auth.refresh(http)
-                
+
             self.session.add_header('Authorization', "Bearer " + self.auth.access_token)
-            
+
         else:
             data = {'Email': self.auth[0],
                     'Passwd': self.auth[1],
                     'accountType': 'HOSTED_OR_GOOGLE',
                     'service': service,
                     'source': source}
-    
+
             url = AUTH_SERVER + '/accounts/ClientLogin'
-    
+
             try:
                 r = self.session.post(url, data)
                 content = r.read().decode()
                 token = self._get_auth_token(content)
                 auth_header = "GoogleLogin auth=%s" % token
                 self.session.add_header('Authorization', auth_header)
-    
+
             except HTTPError as ex:
                 if ex.code == 403:
                     content = ex.read().decode()
@@ -114,7 +114,7 @@ class Client(object):
                     else:
                         raise AuthenticationError(
                             "Unable to authenticate. %s code" % ex.code)
-    
+
                 else:
                     raise AuthenticationError(
                         "Unable to authenticate. %s code" % ex.code)
@@ -316,7 +316,7 @@ def login(email, password):
     client = Client(auth=(email, password))
     client.login()
     return client
-    
+
 def authorize(credentials):
     """Login to Google API using OAuth2 credentials.
 
@@ -329,4 +329,4 @@ def authorize(credentials):
     client = Client(auth=credentials)
     client.login()
     return client
-    
+

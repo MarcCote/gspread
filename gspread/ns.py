@@ -11,6 +11,7 @@ helper functions.
 
 ATOM_NS = 'http://www.w3.org/2005/Atom'
 SPREADSHEET_NS = 'http://schemas.google.com/spreadsheets/2006'
+SPREADSHEET_NSX = 'http://schemas.google.com/spreadsheets/2006/extended'
 BATCH_NS = 'http://schemas.google.com/gdata/batch'
 
 
