@@ -16,7 +16,7 @@ from itertools import chain
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element, SubElement
 
-from .ns import _ns, _ns1, ATOM_NS, BATCH_NS, SPREADSHEET_NS
+from .ns import _ns, _ns1, ATOM_NS, BATCH_NS, SPREADSHEET_NS, SPREADSHEET_NSX
 from .urls import construct_url
 from .utils import finditem, numericise_all
 
@@ -31,6 +31,9 @@ except NameError:
 
 # Patch ElementTree._escape_attrib
 _elementtree_escape_attrib = ElementTree._escape_attrib
+
+
+_invalid_column_name_characters = re.compile('[^a-z0-9.-]')
 
 
 def _escape_attrib(text, encoding=None, replace=None):
@@ -433,6 +436,16 @@ class Worksheet(object):
 
         self.client.put_feed(uri, ElementTree.tostring(feed))
 
+    def _create_append_list_feed(self, values):
+        entry = Element('entry', {'xmlns': ATOM_NS,
+                                  'xmlns:gsx': SPREADSHEET_NSX})
+
+        for header, value in zip(self.row_values(1), values):
+            sanitized_header = re.sub(_invalid_column_name_characters, '', header.lower())
+            SubElement(entry, 'gsx:{}'.format(sanitized_header)).text = "{}".format(value)
+
+        return entry
+
     def _create_update_feed(self, cell_list):
         feed = Element('feed', {'xmlns': ATOM_NS,
                                 'xmlns:batch': BATCH_NS,
@@ -515,18 +528,22 @@ class Worksheet(object):
 
         :param values: List of values for the new row.
         """
-        self.add_rows(1)
-        data_width = len(values)
-        if self.col_count < data_width:
-            self.resize(cols=data_width)
+        url = construct_url('list', self, visibility="private", projection="full")
+        entry = self._create_append_list_feed(values)
+        self.client.post_feed(url, ElementTree.tostring(entry))
 
-        fisrt_cell_addr = self.get_addr_int(self.row_count, 1)
-        last_cell_addr = self.get_addr_int(self.row_count, len(values))
-        cell_list = self.range(fisrt_cell_addr + ":" + last_cell_addr)
-        for cell, value in zip(cell_list, values):
-            cell.value = value
+        # self.add_rows(1)
+        # data_width = len(values)
+        # if self.col_count < data_width:
+        #     self.resize(cols=data_width)
 
-        self.update_cells(cell_list)
+        # fisrt_cell_addr = self.get_addr_int(self.row_count, 1)
+        # last_cell_addr = self.get_addr_int(self.row_count, len(values))
+        # cell_list = self.range(fisrt_cell_addr + ":" + last_cell_addr)
+        # for cell, value in zip(cell_list, values):
+        #     cell.value = value
+
+        # self.update_cells(cell_list)
 
     def insert_row(self, values, index=1):
         """"Adds a row to the worksheet at the specified index and populates it with values.
